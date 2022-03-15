@@ -1,0 +1,49 @@
+# based on https://blog.heptio.com/on-securing-the-kubernetes-dashboard-16b09b1b7aca
+apiVersion: apps/v1
+#apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  labels:
+    app: dashboard-proxy
+  name: dashboard-proxy
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: dashboard-proxy
+  template:
+    metadata:
+      labels:
+        app: dashboard-proxy
+    spec:
+      containers:
+      - args:
+        - --cookie-secure=false
+        - --provider=github
+        - --upstream=http://kubernetes-dashboard.dashboard.svc.cluster.local
+        - --http-address=0.0.0.0:8080
+        - --redirect-url=https://k8dashboard.net/oauth2/callback
+        - --email-domain=*
+        - --github-org=nagarajcapgemini
+        - --pass-basic-auth=false
+        - --pass-access-token=false
+        - --login-url=https://git.daimler.com/login/oauth/authorize
+        - --redeem-url=https://git.daimler.com/login/oauth/access_token
+        - --validate-url=https://git.daimler.com/api/v3
+        - --reverse-proxy=true
+        - --cookie-secure=false
+        - --cookie-samesite=lax
+        - --cookie-domain=https://k8dashboard.net
+        env:
+        - name: OAUTH2_PROXY_CLIENT_ID
+          value: 5e731c9a02a4a31018d9
+        - name: OAUTH2_PROXY_CLIENT_SECRET
+          value: 73d981d91337d4be438de8321cf281908428edc5
+        # docker run -ti --rm python:3-alpine python -c 'import secrets,base64; print(base64.b64encode(base64.b64encode(secrets.token_bytes(16))));'
+        - name: OAUTH2_PROXY_COOKIE_SECRET
+          value: dlfjsdlfjsdfkdsfksd9duf9sd
+        image: bitnami/oauth2-proxy:latest
+        name: oauth-proxy
+        ports:
+        - containerPort: 8080
+          protocol: TCP

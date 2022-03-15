@@ -1,0 +1,68 @@
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: dahsboard-certificate
+  namespace: dashboard
+spec:
+  commonName: k8dashboard.net
+  secretName: dahsboard-certificate
+  dnsNames:
+    - k8dashboard.net
+  issuerRef:
+    name: daimler-acme
+    kind: ClusterIssuer
+---
+    
+apiVersion: traefik.containo.us/v1alpha1
+kind: IngressRoute
+metadata:
+  name: pdwcdashboard-http
+  namespace: dashboard
+spec:
+  entryPoints:
+    - websecure
+  routes:
+    - kind: Rule
+      match: HostRegexp(`k8dashboard.net`) && (PathPrefix(`/`))
+      services:
+        - kind: Service
+          name: dashboard-proxy
+          namespace: dashboard
+          port: 8080             
+  tls:
+    domains:
+      - main: k8dashboard.net
+    secretName: dahsboard-certificate
+
+---
+
+apiVersion: traefik.containo.us/v1alpha1
+kind: IngressRoute
+metadata:
+  name: pdwcdashboard-https
+  namespace: dashboard
+spec:
+  entryPoints:
+    - web
+  routes:
+    - kind: Rule
+      match: HostRegexp(`k8dashboard.net`) && (PathPrefix(`/`))
+      services:
+        - kind: Service
+          name: dashboard-proxy
+          namespace: dashboard
+          port: 8080   
+      middlewares:
+        - name: redirect-https
+          namespace: dashboard
+---
+
+apiVersion: traefik.containo.us/v1alpha1
+kind: Middleware
+metadata:
+  name: redirect-https
+spec:
+  redirectScheme:
+    scheme: https
+    permanent: true
+          

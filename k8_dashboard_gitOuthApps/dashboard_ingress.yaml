@@ -1,0 +1,24 @@
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  annotations:
+    kubernetes.io/ingress.class: traefik
+    traefik.frontend.priority: "1"
+    traefik.ingress.kubernetes.io/redirect-permanent: "true"
+    traefik.ingress.kubernetes.io/redirect-regex: ^http://k8dashboard.net /(.*)	
+    traefik.ingress.kubernetes.io/redirect-replacement: https://k8dashboard.net /$1
+    cert-manager.io/cluster-issuer: daimler-acme
+  name: pdmwtest-ingress
+spec:
+  rules:
+  - host: k8dashboard.net
+    http:
+      paths:
+      - backend:
+          serviceName: dashboard-proxy
+          servicePort: 8080
+        path: /
+  tls:
+  - hosts:
+    - k8dashboard.net
+    secretName: pdmwctest-tls-secret

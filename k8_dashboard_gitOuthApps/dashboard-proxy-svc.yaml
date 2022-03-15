@@ -1,0 +1,20 @@
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    run: dashboard-proxy
+  name: dashboard-proxy
+  namespace: dashboard
+spec:
+  type: ClusterIP
+  ports:
+  - name: http
+    port: 8080
+    protocol: TCP
+    targetPort: 8080
+  selector:
+    app: dashboard-proxy
+  sessionAffinity: None
+status:
+  loadBalancer: {}
+
